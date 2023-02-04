@@ -798,13 +798,18 @@ RawResult = collections.namedtuple("RawResult",
 def write_predictions_qada(args, all_examples, all_features, all_results, n_best_size,
                       max_answer_length, do_lower_case, output_prediction_file,
                       output_nbest_file, output_null_log_odds_file, verbose_logging,
-                      version_2_with_negative=True, null_score_diff_threshold=1.0):
+                      version_2_with_negative=True, null_score_diff_threshold=1.0, wr=True):
     """Write final predictions to the json file and log-odds of null if needed."""
 
     version_2_with_negative = args.version_2_with_negatives
     null_score_diff_threshold = args.null_score_threshold
-    logger.info("Writing predictions to: %s" % (output_prediction_file))
-    logger.info("Writing nbest to: %s" % (output_nbest_file))
+
+    if wr:
+        logger.info("Writing predictions to: %s" % (output_prediction_file))
+        logger.info("Writing nbest to: %s" % (output_nbest_file))
+
+    else:
+        logger.info("getting preprocessing confidence scores for model trainingw")
 
     example_index_to_features = collections.defaultdict(list)
     for feature in all_features:
@@ -1005,15 +1010,16 @@ def write_predictions_qada(args, all_examples, all_features, all_results, n_best
         
         all_nbest_json[example.qas_id] = nbest_json
 
-    with open(output_prediction_file, "w") as writer:
-        writer.write(json.dumps(all_predictions, indent=4) + "\n")
+    if wr:
+        with open(output_prediction_file, "w") as writer:
+            writer.write(json.dumps(all_predictions, indent=4) + "\n")
 
-    with open(output_nbest_file, "w") as writer:
-        writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
+        with open(output_nbest_file, "w") as writer:
+            writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
 
-    if version_2_with_negative:
-        with open(output_null_log_odds_file, "w") as writer:
-            writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
+        if version_2_with_negative:
+            with open(output_null_log_odds_file, "w") as writer:
+                writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
 
     return all_predictions, all_probs, all_indices
 

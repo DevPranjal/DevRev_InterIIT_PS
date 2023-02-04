@@ -62,12 +62,12 @@ def prediction_stage(args, device, tokenizer, logger, debug=False):
     model.to(device)
     # Read prediction samples
     read_limit = None
-    if debug:
+    if debug=="True":
         read_limit = 200
     logger.info("***** Reading Prediction Samples *****")
     eval_features, eval_examples = read_features_and_examples(args, args.predict_file, tokenizer, logger,
             use_simple_feature=False, read_examples=True, limit=read_limit)
-    acc, f1 = evaluation_stage(args, eval_examples, eval_features, device, model, logger)
+    acc, f1 = evaluation_stage(args, eval_examples, eval_features, device, model, logger, wr=True)
     logger.info('***** Prediction Performance *****')
     logger.info('EM is %.5f, F1 is %.5f', acc, f1)
 
@@ -131,7 +131,7 @@ def compare_performance(args, best_acc, best_f1, acc, f1, model, logger):
 
 
 def evaluation_stage(args, eval_examples, eval_features, device, model, logger, generate_prob_th=0.6,
-        removed_feature_index=None, global_step=None, best_acc=None, best_f1=None, generate_label=False):
+        removed_feature_index=None, global_step=None, best_acc=None, best_f1=None, generate_label=False, wr=False):
     if not global_step:
         logger.info("***** Running Evaluation Stage *****")
     else:
@@ -177,12 +177,11 @@ def evaluation_stage(args, eval_examples, eval_features, device, model, logger, 
         output_prediction_file = os.path.join(args.output_dir, 'predictions.json')
         output_nbest_file = os.path.join(args.output_dir, 'nbest_predictions.json')
         output_null_odd_logs_file = os.path.join(args.output_dir, 'null_odds.json')
-
-    """ !!! Important fix this !!! """
+    
     all_predictions, all_probs, all_indices = write_predictions_qada(args, eval_examples, eval_features, all_results,
         args.n_best_size, args.max_answer_length,
         args.do_lower_case, output_prediction_file,
-        output_nbest_file, output_null_odd_logs_file, args.verbose_logging, logger, args.output_prediction)
+        output_nbest_file, output_null_odd_logs_file, args.verbose_logging, logger, args.output_prediction, wr=wr)
     
     if generate_label:
         return keep_high_prob_samples(all_probs, eval_features, generate_prob_th, removed_feature_index, all_indices,
@@ -318,7 +317,7 @@ def comb_adversarial_training_stage(args, target_train_features, target_train_ex
 
 
 def prepare_model(args, device):
-    input_model_file = os.path.join(args.input_dir, args.input_model_file)
+    sinput_model_file = os.path.join(args.input_dir, args.input_model_file)
     model_state_dict = torch.load(input_model_file)
     model = BertForQuestionAnsweringQADA.from_pretrained(args.bert_model, state_dict=model_state_dict, args=args)
     model.to(device)
@@ -407,7 +406,7 @@ def main(debug=False):
         help="The model file which will be loaded before training, it cannot be empty.")
         
     parser.add_argument("--train_file", default=None, type=str, help="SQuAD json for training. E.g., train-v1.1.json")
-    parser.add_argument("--predict_file", default=None, type=str, help="SQuAD json for predictions/Dev. E.g., dev-v1.1.json or test-v1.1.json")
+    parser.add_argument("--predict_file", default='./data/squad/dev-v2.0.json', type=str, help="SQuAD json for predictions/Dev. E.g., dev-v1.1.json or test-v1.1.json")
     
     parser.add_argument("--target_train_file", default='./data/squad/train-v2.0.json', type=str, help="Train file in target domain")
     parser.add_argument("--target_predict_file", default='./data/squad/dev-v2.0.json', type=str, help="Dev file in target domain")

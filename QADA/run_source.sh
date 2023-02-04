@@ -3,6 +3,7 @@ python3 src/run_source.py \
 	--bert_model bert-base-uncased \
 	--do_train \
 	--do_predict \
+	--num_train_epochs 1.0 \
 	--version_2_with_negatives True \
 	--train_file data/squad/train-v2.0.json \
 	--predict_file data/squad/dev-v2.0.json \

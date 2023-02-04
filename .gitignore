@@ -14,7 +14,9 @@
 **/CAQA_venv/*
 **/QADA_venv/*
 **/anaconda3/*
+
 **/EQA/*
 **/question_generation_psuraj/*
 **/UnanswerableQA/*
 **/UnsupervisedQA/*
+**/logs/*

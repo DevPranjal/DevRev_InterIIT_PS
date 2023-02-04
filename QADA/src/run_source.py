@@ -61,7 +61,7 @@ def prediction_stage(args, device, tokenizer, logger, debug=False):
     model.to(device)
     # Read prediction samples
     read_limit = None
-    if debug:
+    if debug=="True":
         read_limit = 100
     logger.info("***** Reading Prediction Samples *****")
     eval_features, eval_examples = read_features_and_examples(args, args.predict_file, tokenizer, logger,
